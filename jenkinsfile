@@ -2,32 +2,31 @@ pipeline {
     agent { label 'J-Agent' }
     tools {
         jdk 'Java17'
-       maven 'Maven3'
+        maven 'Maven3'
     }
-    stages{
-        stages("Cleanup Workspace"){
-                 steps {
-             cleanWs()
-             }
-      }
-
-      stage("Checkout from SCM"){
-              steps {
-                  git branch: 'main', credentials: 'github', url: 'https://github.com/leketech/register-app/new/main'
-              }
+    stages {
+        stage("Cleanup Workspace") { // Corrected stages to stage
+            steps {
+                cleanWs()
+            }
         }
 
-        stage("Build Application"){
+        stage("Checkout from SCM") {
+            steps {
+                git branch: 'main', credentialsId: 'github', url: 'https://github.com/leketech/register-app.git' // Changed credentials to credentialsId and corrected the git URL
+            }
+        }
+
+        stage("Build Application") {
             steps {
                 sh "mvn clean package"
-             }
-
+            }
         }
 
-        stage("Test Application"){
+        stage("Test Application") {
             steps {
-                  sh "mvn test"
-           }
-       }
+                sh "mvn test"
+            }
+        }
     }
 }
