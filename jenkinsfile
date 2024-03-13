@@ -11,7 +11,6 @@ pipeline {
         // Assuming DOCKER_PASS is a placeholder for credentialsId for Docker Registry
         IMAGE_NAME = "dummy" // Placeholder, will set correctly in script block
         IMAGE_TAG = "dummy" // Placeholder, will set correctly in script block
-	    JENKINS_API_TOKEN = credentials("JENKINS_API_TOKEN")
     }
     stages{
         stage("Cleanup Workspace"){
