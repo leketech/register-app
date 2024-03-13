@@ -1,57 +1,59 @@
 pipeline {
-    agent { label 'J-Agent' }
+    agent { 
+        label 'J-Agent' 
+    }
     tools {
         jdk 'Java17'
         maven 'Maven3'
     }
     environment {
-	    APP_NAME = "register-app-pipeline"
+        APP_NAME = "register-app-pipeline"
         RELEASE = "1.0.0"
         DOCKER_USER = "leke1995"
         DOCKER_PASS = 'dockerhub'
-        IMAGE_NAME = "${DOCKER_USER}" + "/" + "${APP_NAME}"
+        IMAGE_NAME = "${DOCKER_USER}/${APP_NAME}"
         IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}"
     }
-    stages{
-        stage("Cleanup Workspace"){
+    stages {
+        stage("Cleanup Workspace") {
             steps {
                 cleanWs()
             }
         }
 
-        stage("Checkout from SCM"){
+        stage("Checkout from SCM") {
             steps {
                 git branch: 'main', credentialsId: 'github', url: 'https://github.com/leketech/register-app.git'
             }
         }
 
-        stage("Build Application"){
+        stage("Build Application") {
             steps {
                 sh "mvn clean package"
             }
         }
 
-        stage("Test Application"){
+        stage("Test Application") {
             steps {
                 sh "mvn test"
             }
         }
 
-        stage("SonarQube Analysis"){
+        stage("SonarQube Analysis") {
             steps {
                 script {
-		            withSonarQubeEnv('jenkins-sonar-tok') { 
+                    withSonarQubeEnv('jenkins-sonar-tok') { 
                         sh "mvn sonar:sonar"
-		            }
-	            }	
+                    }
+                }   
             }
         }
 
-        stage("Quality Gate"){
+        stage("Quality Gate") {
             steps {
                 script {
                     waitForQualityGate abortPipeline: false
-                }	
+                }   
             }
         }
 
@@ -62,7 +64,7 @@ pipeline {
                     env.IMAGE_NAME = "${DOCKER_USER}/${APP_NAME}"
                     env.IMAGE_TAG = "${RELEASE}-${env.BUILD_NUMBER}"
                     // Use credentials for Docker Registry
-                    docker.withRegistry('',DOCKER_PASS) {
+                    docker.withRegistry('', DOCKER_PASS) {
                         def docker_image = docker.build(env.IMAGE_NAME)
                         docker_image.push(env.IMAGE_TAG)
                         docker_image.push('latest')
