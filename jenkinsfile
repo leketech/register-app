@@ -8,9 +8,9 @@ pipeline {
 	    APP_NAME = "register-app-pipeline"
         RELEASE = "1.0.0"
         DOCKER_USER = "leke1995"
-        // Assuming DOCKER_PASS is a placeholder for credentialsId for Docker Registry
-        IMAGE_NAME = "dummy" // Placeholder, will set correctly in script block
-        IMAGE_TAG = "dummy" // Placeholder, will set correctly in script block
+        DOCKER_PASS = 'dockerhub'
+        IMAGE_NAME = "${DOCKER_USER}" + "/" + "${APP_NAME}"
+        IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}"
     }
     stages{
         stage("Cleanup Workspace"){
