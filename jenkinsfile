@@ -28,5 +28,16 @@ pipeline {
                 sh "mvn test"
             }
         }
+
+        // Integrated SonarQube Analysis stage correctly
+        stage("SonarQube Analysis") {
+            steps {
+                script {
+                    withSonarQubeEnv('jenkins-sonar-tok') {
+                        sh "mvn sonar:sonar"
+                    }
+                }
+            }
+        }
     }
 }
