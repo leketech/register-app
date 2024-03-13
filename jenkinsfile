@@ -6,69 +6,70 @@ pipeline {
     }
     environment {
 	    APP_NAME = "register-app-pipeline"
-            RELEASE = "1.0.0"
-            DOCKER_USER = "leke1995"
-            DOCKER_PASS = 'dockerhub'
-            IMAGE_NAME = "${DOCKER_USER}" + "/" + "${APP_NAME}"
-            IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}"
+        RELEASE = "1.0.0"
+        DOCKER_USER = "leke1995"
+        // Assuming DOCKER_PASS is a placeholder for credentialsId for Docker Registry
+        IMAGE_NAME = "dummy" // Placeholder, will set correctly in script block
+        IMAGE_TAG = "dummy" // Placeholder, will set correctly in script block
 	    JENKINS_API_TOKEN = credentials("JENKINS_API_TOKEN")
     }
     stages{
         stage("Cleanup Workspace"){
-                steps {
+            steps {
                 cleanWs()
-                }
+            }
         }
 
         stage("Checkout from SCM"){
-                steps {
-                    git branch: 'main', credentialsId: 'github', url: 'github', url: 'https://github.com/leketech/register-app.git'                }
+            steps {
+                git branch: 'main', credentialsId: 'github', url: 'https://github.com/leketech/register-app.git'
+            }
         }
 
         stage("Build Application"){
             steps {
                 sh "mvn clean package"
             }
+        }
 
-       }
+        stage("Test Application"){
+            steps {
+                sh "mvn test"
+            }
+        }
 
-       stage("Test Application"){
-           steps {
-                 sh "mvn test"
-           }
-       }
-
-       stage("SonarQube Analysis"){
-           steps {
-	           script {
-		        withSonarQubeEnv(credentialsId: 'jenkins-sonar-tok') { 
+        stage("SonarQube Analysis"){
+            steps {
+                script {
+		            withSonarQubeEnv('jenkins-sonar-tok') { 
                         sh "mvn sonar:sonar"
-		        }
-	           }	
-           }
-       }
+		            }
+	            }	
+            }
+        }
 
-       stage("Quality Gate"){
-           steps {
-               script {
-                    waitForQualityGate abortPipeline: false, credentialsId: 'jenkins-sonar-tok'
+        stage("Quality Gate"){
+            steps {
+                script {
+                    waitForQualityGate abortPipeline: false
                 }	
             }
-
         }
 
         stage("Build & Push Docker Image") {
             steps {
                 script {
-                    docker.withRegistry('',DOCKER_PASS) {
-                        docker_image = docker.build "${IMAGE_NAME}"
-                    }
-
-                    docker.withRegistry('',DOCKER_PASS) {
-                        docker_image.push("${IMAGE_TAG}")
+                    // Correctly setting IMAGE_NAME and IMAGE_TAG here
+                    env.IMAGE_NAME = "${DOCKER_USER}/${APP_NAME}"
+                    env.IMAGE_TAG = "${RELEASE}-${env.BUILD_NUMBER}"
+                    // Use credentials for Docker Registry
+                    docker.withRegistry('https://index.docker.io/v1/', 'DOCKER_REGISTRY_CREDENTIALS') {
+                        def docker_image = docker.build(env.IMAGE_NAME)
+                        docker_image.push(env.IMAGE_TAG)
                         docker_image.push('latest')
                     }
                 }
             }
-
-       }
+        }
+    }
+}
